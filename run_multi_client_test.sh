@@ -16,7 +16,7 @@ mkdir -p bin
 
 # 新しいセッションを作成し、サーバーを起動
 echo "tmuxセッションを作成中..."
-tmux new-session -d -s $SESSION "echo '=== Jabber Multi-Client Server (Port: $PORT) ==='; echo 'Compiling Java files...'; javac -d bin src/*.java && echo 'Starting server...' && java -cp bin JabberServer $PORT; echo 'Server stopped. Press any key to close.'; read"
+tmux new-session -d -s $SESSION "echo '=== Jabber Multi-Client Server (Port: $PORT) ==='; echo 'Compiling Java files...'; javac -d bin src/bootcamp/*.java && echo 'Starting server...' && java -cp bin JabberServer $PORT; echo 'Server stopped. Press any key to close.'; read"
 
 # 2秒待機してサーバーが起動するのを待つ
 sleep 2

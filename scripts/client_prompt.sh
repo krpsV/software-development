@@ -8,7 +8,7 @@ PORT=${PORT:-9000}
 read -p "クライアントを起動しますか？ (port: $PORT) (y/n): " answer
 if [[ $answer == "y" ]]; then
   mkdir -p bin
-  javac -d bin src/*.java && java -cp bin JabberClient $PORT; read
+  javac -d bin src/bootcamp/*.java && java -cp bin JabberClient $PORT; read
 else
   echo "クライアントの起動をキャンセルしました。"
   read
