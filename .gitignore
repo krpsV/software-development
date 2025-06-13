@@ -1,0 +1,104 @@
+# Javaコンパイル出力
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+bin/
+target/
+build/
+out/
+
+# パッケージファイル
+*.deb
+*.rpm
+*.msi
+
+# IDE固有ファイル
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse
+.project
+.classpath
+.settings/
+.metadata/
+
+# Visual Studio Code
+.vscode/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ログファイル
+*.log
+logs/
+
+# 一時ファイル
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Javaアプリケーション固有
+hs_err_pid*
+replay_pid*
+
+# tmux関連（このプロジェクト固有）
+.tmux*
+
+# OS固有ファイル
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+build/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# 環境固有ファイル
+.env
+.env.local
+config.properties
+
+# バックアップファイル
+*.bak
+*.backup 
