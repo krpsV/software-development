@@ -1,8 +1,9 @@
-package bootcamp;
+//package bootcamp;
 
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
+import java.nio.charset.Charset;
 
 public class ShiritoriClient {
     public static void main(String[] args) throws IOException {
@@ -15,15 +16,15 @@ public class ShiritoriClient {
         Socket socket = new Socket(addr, port);
         
         try {
-            BufferedReader in = new BufferedReader(
-                new InputStreamReader(socket.getInputStream()));
+           BufferedReader in = new BufferedReader(
+                new InputStreamReader(socket.getInputStream(), Charset.forName("MS932")));
             PrintWriter out = new PrintWriter(
                 new BufferedWriter(
-                    new OutputStreamWriter(socket.getOutputStream())), true);
+                    new OutputStreamWriter(socket.getOutputStream(), Charset.forName("MS932"))), true);
+
+            Scanner scanner = new Scanner(System.in, Charset.forName("MS932"));
             
-            Scanner scanner = new Scanner(System.in);
-            
-            // ã‚µãƒ¼ãƒãƒ¼ã‹ã‚‰ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã™ã‚‹ã‚¹ãƒ¬ãƒƒãƒ‰
+            // ƒT[ƒo[‚©‚ç‚ÌƒƒbƒZ[ƒW‚ğóM‚·‚éƒXƒŒƒbƒh
             Thread receiverThread = new Thread(() -> {
                 try {
                     String message;
@@ -31,15 +32,15 @@ public class ShiritoriClient {
                         System.out.println(message);
                     }
                 } catch (IOException e) {
-                    System.err.println("å—ä¿¡ã‚¨ãƒ©ãƒ¼: " + e.getMessage());
+                    System.err.println("óMƒGƒ‰[: " + e.getMessage());
                 }
             });
             receiverThread.start();
             
-            System.out.println("ã—ã‚Šã¨ã‚Šã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆé–‹å§‹");
-            System.out.println("å˜èªã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ï¼ˆ/quit ã§çµ‚äº†ã€/reset ã§ã‚²ãƒ¼ãƒ ãƒªã‚»ãƒƒãƒˆï¼‰:");
+            System.out.println("‚µ‚è‚Æ‚èƒNƒ‰ƒCƒAƒ“ƒgŠJn");
+            System.out.println("’PŒê‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢i/quit ‚ÅI—¹A/reset ‚ÅƒQ[ƒ€ƒŠƒZƒbƒgj:");
             
-            // ãƒ¦ãƒ¼ã‚¶ãƒ¼å…¥åŠ›ã‚’é€ä¿¡
+            // ƒ†[ƒU[“ü—Í‚ğ‘—M
             String input;
             while ((input = scanner.nextLine()) != null) {
                 out.println(input);

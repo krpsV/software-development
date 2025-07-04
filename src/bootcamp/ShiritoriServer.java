@@ -1,10 +1,11 @@
-package bootcamp;
+//package bootcamp;
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.nio.charset.Charset;
 
 public class ShiritoriServer {
     public static int PORT = 8081;
@@ -19,8 +20,8 @@ public class ShiritoriServer {
         }
         
         ServerSocket serverSocket = new ServerSocket(PORT);
-        System.out.println("ã—ã‚Šã¨ã‚Šã‚µãƒ¼ãƒãƒ¼é–‹å§‹: ãƒãƒ¼ãƒˆ " + PORT);
-        System.out.println("ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã®æ¥ç¶šã‚’å¾…æ©Ÿä¸­...");
+        System.out.println("‚µ‚è‚Æ‚èƒT[ƒo[ŠJn: ƒ|[ƒg " + PORT);
+        System.out.println("ƒNƒ‰ƒCƒAƒ“ƒg‚ÌÚ‘±‚ğ‘Ò‹@’†...");
         
         try {
             while (true) {
@@ -29,10 +30,10 @@ public class ShiritoriServer {
                 clients.add(handler);
                 new Thread(handler).start();
                 
-                broadcastMessage("ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼" + handler.playerId + "ãŒå‚åŠ ã—ã¾ã—ãŸã€‚ç¾åœ¨" + clients.size() + "äºº");
+                broadcastMessage("ƒvƒŒƒCƒ„[" + handler.playerId + "‚ªQ‰Á‚µ‚Ü‚µ‚½BŒ»İ" + clients.size() + "l");
                 if (!gameStarted && clients.size() >= 2) {
                     gameStarted = true;
-                    broadcastMessage("ã‚²ãƒ¼ãƒ é–‹å§‹ï¼æœ€åˆã®å˜èªã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚");
+                    broadcastMessage("ƒQ[ƒ€ŠJnIÅ‰‚Ì’PŒê‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B");
                 }
             }
         } finally {
@@ -41,54 +42,56 @@ public class ShiritoriServer {
     }
     
     public static synchronized void broadcastMessage(String message) {
-        System.out.println("ãƒ–ãƒ­ãƒ¼ãƒ‰ã‚­ãƒ£ã‚¹ãƒˆ: " + message);
+        System.out.println("ƒuƒ[ƒhƒLƒƒƒXƒg: " + message);
         for (ClientHandler client : clients) {
             client.sendMessage(message);
         }
     }
     
     public static synchronized boolean processWord(String word, int playerId) {
-        // æ–‡å­—ã®æ­£è¦åŒ–
+        // •¶š‚Ì³‹K‰»
         String normalizedWord = normalizeWord(word);
+        byte[] ms932Bytes = normalizedWord.getBytes(Charset.forName("MS932"));
+        String decodedNomalizedWord = new String(ms932Bytes, Charset.forName("MS932"));
         
-        // ä½¿ç”¨æ¸ˆã¿å˜èªãƒã‚§ãƒƒã‚¯
-        if (usedWords.contains(normalizedWord)) {
+        // g—pÏ‚İ’PŒêƒ`ƒFƒbƒN
+        if (usedWords.contains(word)) {
             return false;
         }
         
-        // ã—ã‚Šã¨ã‚Šãƒ«ãƒ¼ãƒ«ãƒã‚§ãƒƒã‚¯
+        // ‚µ‚è‚Æ‚èƒ‹[ƒ‹ƒ`ƒFƒbƒN
         if (!currentLastChar.isEmpty()) {
-            String firstChar = getFirstChar(normalizedWord);
+            String firstChar = getFirstChar(decodedNomalizedWord);
             if (!firstChar.equals(currentLastChar)) {
                 return false;
             }
         }
         
-        // ã€Œã‚“ã€ã§çµ‚ã‚ã‚‹å˜èªãƒã‚§ãƒƒã‚¯
-        String lastChar = getLastChar(normalizedWord);
-        if (lastChar.equals("ã‚“")) {
-            usedWords.add(normalizedWord);
-            broadcastMessage("ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼" + playerId + ": " + word + " â†’ã€Œã‚“ã€ã§çµ‚ã‚ã£ãŸã®ã§ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼" + playerId + "ã®è² ã‘ï¼");
-            broadcastMessage("ã‚²ãƒ¼ãƒ çµ‚äº†ã€‚æ–°ã—ã„ã‚²ãƒ¼ãƒ ã‚’é–‹å§‹ã™ã‚‹ã«ã¯/resetã¨å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚");
+        // u‚ñv‚ÅI‚í‚é’PŒêƒ`ƒFƒbƒN
+        String lastChar = getLastChar(decodedNomalizedWord);
+        if (lastChar.equals("‚ñ")) {
+            usedWords.add(decodedNomalizedWord);
+            broadcastMessage("ƒvƒŒƒCƒ„[" + playerId + ": " + word + " ¨u‚ñv‚ÅI‚í‚Á‚½‚Ì‚ÅƒvƒŒƒCƒ„[" + playerId + "‚Ì•‰‚¯I");
+            broadcastMessage("ƒQ[ƒ€I—¹BV‚µ‚¢ƒQ[ƒ€‚ğŠJn‚·‚é‚É‚Í/reset‚Æ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B");
             return true;
         }
         
-        // å˜èªã‚’å—ç†
-        usedWords.add(normalizedWord);
+        // ’PŒê‚ğó—
+        usedWords.add(decodedNomalizedWord);
         currentLastChar = lastChar;
-        broadcastMessage("ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼" + playerId + ": " + word + " (æ¬¡ã¯ã€Œ" + currentLastChar + "ã€ã‹ã‚‰)");
+        broadcastMessage("ƒvƒŒƒCƒ„[" + playerId + ": " + word + " (Ÿ‚Íu" + currentLastChar + "v‚©‚ç)");
         return true;
     }
     
     public static synchronized void resetGame() {
         usedWords.clear();
         currentLastChar = "";
-        broadcastMessage("ã‚²ãƒ¼ãƒ ãƒªã‚»ãƒƒãƒˆï¼æ–°ã—ã„ã‚²ãƒ¼ãƒ ã‚’é–‹å§‹ã—ã¾ã™ã€‚");
+        broadcastMessage("ƒQ[ƒ€ƒŠƒZƒbƒgIV‚µ‚¢ƒQ[ƒ€‚ğŠJn‚µ‚Ü‚·B");
     }
     
     private static String normalizeWord(String word) {
-        // ä¼¸ã°ã—æ£’ã‚’å‰Šé™¤
-        return word.replaceAll("ãƒ¼", "");
+        // L‚Î‚µ–_‚ğíœ
+        return word.replaceAll("[", "");
     }
     
     private static String getFirstChar(String word) {
@@ -121,36 +124,38 @@ public class ShiritoriServer {
         public void run() {
             try {
                 BufferedReader in = new BufferedReader(
-                    new InputStreamReader(socket.getInputStream()));
+                    new InputStreamReader(socket.getInputStream(), Charset.forName("MS932")));
                 out = new PrintWriter(
                     new BufferedWriter(
-                        new OutputStreamWriter(socket.getOutputStream())), true);
+                        new OutputStreamWriter(socket.getOutputStream(), Charset.forName("MS932"))), true);
+
                 
-                sendMessage("ã—ã‚Šã¨ã‚Šã‚²ãƒ¼ãƒ ã¸ã‚ˆã†ã“ãï¼ã‚ãªãŸã¯ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼" + playerId + "ã§ã™ã€‚");
-                sendMessage("ã‚³ãƒãƒ³ãƒ‰: /reset (ã‚²ãƒ¼ãƒ ãƒªã‚»ãƒƒãƒˆ), /quit (çµ‚äº†)");
+                sendMessage("‚µ‚è‚Æ‚èƒQ[ƒ€‚Ö‚æ‚¤‚±‚»I‚ ‚È‚½‚ÍƒvƒŒƒCƒ„[" + playerId + "‚Å‚·B");
+                sendMessage("ƒRƒ}ƒ“ƒh: /reset (ƒQ[ƒ€ƒŠƒZƒbƒg), /quit (I—¹)");
                 
                 String input;
                 while ((input = in.readLine()) != null) {
+
                     if (input.equals("/quit") || input.equals("END")) {
                         break;
                     } else if (input.equals("/reset")) {
                         resetGame();
                     } else if (!input.trim().isEmpty()) {
                         if (!processWord(input.trim(), playerId)) {
-                            sendMessage("ç„¡åŠ¹ãªå˜èªã§ã™ã€‚ç†ç”±: ã™ã§ã«ä½¿ç”¨æ¸ˆã¿ ã¾ãŸã¯ ã—ã‚Šã¨ã‚Šãƒ«ãƒ¼ãƒ«é•å");
+                            sendMessage("–³Œø‚È’PŒê‚Å‚·B——R: ‚·‚Å‚Ég—pÏ‚İ ‚Ü‚½‚Í ‚µ‚è‚Æ‚èƒ‹[ƒ‹ˆá”½");
                         }
                     }
                 }
                 
             } catch (IOException e) {
-                System.err.println("ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼" + playerId + "ã®ã‚¨ãƒ©ãƒ¼: " + e.getMessage());
+                System.err.println("ƒvƒŒƒCƒ„[" + playerId + "‚ÌƒGƒ‰[: " + e.getMessage());
             } finally {
                 clients.remove(this);
-                broadcastMessage("ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼" + playerId + "ãŒé€€å‡ºã—ã¾ã—ãŸã€‚ç¾åœ¨" + clients.size() + "äºº");
+                broadcastMessage("ƒvƒŒƒCƒ„[" + playerId + "‚ª‘Şo‚µ‚Ü‚µ‚½BŒ»İ" + clients.size() + "l");
                 try {
                     socket.close();
                 } catch (IOException e) {
-                    System.err.println("ã‚½ã‚±ãƒƒãƒˆã‚¯ãƒ­ãƒ¼ã‚ºã‚¨ãƒ©ãƒ¼: " + e.getMessage());
+                    System.err.println("ƒ\ƒPƒbƒgƒNƒ[ƒYƒGƒ‰[: " + e.getMessage());
                 }
             }
         }
