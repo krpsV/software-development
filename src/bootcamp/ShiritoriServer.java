@@ -6,14 +6,14 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ShiritoriServer {
-    private static final int PORT = 12345;
+    private static final int PORT = 8081;
     private static final List<ClientHandler> clients = new ArrayList<>();
     private static final Map<String, Integer> scores = new HashMap<>();
     private static final Map<String, String> longestWords = new HashMap<>();
+    private static final Set<String> usedWords = new HashSet<>();
     private static String lastWord = "り";
     private static boolean gameEnded = false;
     private static final AtomicInteger playerCount = new AtomicInteger(1);
-    private static final Set<String> usedWords = new HashSet<>();
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(PORT);
@@ -50,99 +50,89 @@ public class ShiritoriServer {
             }
         }
 
-        private void sendMessage(String msg) {
-            out.println(msg);
-        }
-
-        @Override
         public void run() {
-            sendMessage("しりとりゲームへようこそ！あなたは" + playerName + "です。");
-            sendMessage("コマンド: /reset (ゲームリセット), /quit (終了)");
-            sendMessage("最初の文字は『" + lastWord + "』です。単語を入力してください。");
+            out.println("しりとりクライアント開始。最初の文字は『" + lastWord + "』です。単語を入力してください（/quit で終了、/reset でリセット）:");
+            broadcast(playerName + "が参加しました。");
 
             try {
-                String input;
-                while ((input = in.readLine()) != null) {
-                    if (input.equals("/quit")) {
-                        break;
-                    } else if (input.equals("/reset")) {
-                        resetGame();
-                        broadcast("ゲームがリセットされました。最初の文字は『" + lastWord + "』です。");
-                    } else if (!input.trim().isEmpty()) {
-                        boolean valid = processWord(input.trim(), playerName);
-                        if (!valid) {
-                            sendMessage("無効な単語です。前の単語の最後の文字『" + lastWord + "』で始まる単語を入力してください。");
+                while (true) {
+                    String input = in.readLine();
+                    if (input == null || input.equals("/quit")) break;
+
+                    synchronized (ShiritoriServer.class) {
+                        if (input.equals("/reset")) {
+                            resetGame();
+                            broadcast(playerName + "がゲームをリセットしました。新しい最初の文字は『" + lastWord + "』です。");
+                            continue;
                         }
+
+                        if (gameEnded) {
+                            out.println("ゲームは終了しています。/reset でリセットしてください。");
+                            continue;
+                        }
+
+                        if (!input.startsWith(lastWord)) {
+                            out.println("前の単語の最後の文字『" + lastWord + "』で始まる単語を入力してください。");
+                            continue;
+                        }
+
+                        if (usedWords.contains(input)) {
+                            out.println("この単語は既に使用されています。別の単語を入力してください。");
+                            continue;
+                        }
+
+                        if (input.endsWith("ん")) {
+                            scores.put(playerName, 0);
+                            gameEnded = true;
+                            broadcast(playerName + "が「ん」で終えたので負け！ゲーム終了！");
+                            determineWinner();
+                            break;
+                        }
+
+                        usedWords.add(input);
+
+                        // 得点加算（文字数×10）
+                        int points = input.length() * 10;
+                        scores.put(playerName, scores.get(playerName) + points);
+
+                        // 最長単語の更新
+                        if (input.length() > longestWords.get(playerName).length()) {
+                            longestWords.put(playerName, input);
+                        }
+
+                        broadcast(playerName + ": " + input + "（得点: " + scores.get(playerName) + "）");
+
+                        // 最後の文字の変換処理
+                        String lastChar = input.substring(input.length() - 1);
+                        lastChar = normalizeLastChar(lastChar, input);
+                        lastWord = lastChar;
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                try { socket.close(); } catch (IOException ignored) {}
+                try {
+                    socket.close();
+                } catch (IOException ignored) {}
                 broadcast(playerName + "が退出しました。");
-                synchronized (clients) {
-                    clients.remove(this);
-                }
             }
-        }
-    }
-
-    private static synchronized boolean processWord(String word, String playerName) {
-        // すでに使用済み単語かチェック
-        if (usedWords.contains(word)) {
-            return false;
-        }
-
-        // 最初の単語は lastWord と比較
-        if (!word.startsWith(lastWord)) {
-            return false;
-        }
-
-        // 「ん」で終わると負け
-        if (word.endsWith("ん")) {
-            scores.put(playerName, 0);
-            gameEnded = true;
-            broadcast(playerName + "が「ん」で終わったため負け！ゲーム終了！");
-            determineWinner();
-            return true;
-        }
-
-        // 正常な単語として記録
-        usedWords.add(word);
-
-        // 得点加算（文字数×10）
-        int points = word.length() * 10;
-        scores.put(playerName, scores.get(playerName) + points);
-
-        // 最長単語更新
-        if (word.length() > longestWords.get(playerName).length()) {
-            longestWords.put(playerName, word);
-        }
-
-        // lastWord を更新
-        lastWord = word.substring(word.length() - 1);
-
-        broadcast(playerName + ": " + word + "（得点: " + scores.get(playerName) + "）");
-
-        return true;
-    }
-
-    private static synchronized void resetGame() {
-        lastWord = "り";
-        gameEnded = false;
-        usedWords.clear();
-        for (String player : scores.keySet()) {
-            scores.put(player, 0);
-            longestWords.put(player, "");
         }
     }
 
     private static void broadcast(String message) {
         synchronized (clients) {
             for (ClientHandler client : clients) {
-                client.sendMessage(message);
+                client.out.println(message);
             }
         }
+    }
+
+    private static void resetGame() {
+        lastWord = "り";
+        gameEnded = false;
+        usedWords.clear();
+        scores.replaceAll((k, v) -> 0);
+        longestWords.replaceAll((k, v) -> "");
     }
 
     private static void determineWinner() {
@@ -152,26 +142,43 @@ public class ShiritoriServer {
         for (Map.Entry<String, String> entry : longestWords.entrySet()) {
             String player = entry.getKey();
             String word = entry.getValue();
-
-            // 負けた（得点0）のプレイヤーは長さボーナス対象外
             if (scores.get(player) == 0) continue;
-
             if (word.length() > maxLen) {
                 maxLen = word.length();
                 longestPlayer = player;
             }
         }
 
-        // 最長単語ボーナス加算 +100点
         if (longestPlayer != null) {
             scores.put(longestPlayer, scores.get(longestPlayer) + 100);
             broadcast("最も長い単語のプレイヤー " + longestPlayer + " に +100点のボーナス！");
         }
 
-        // トータル得点が最大のプレイヤーを勝者とする
         String winner = Collections.max(scores.entrySet(), Map.Entry.comparingByValue()).getKey();
         int maxScore = scores.get(winner);
 
         broadcast("勝者: " + winner + "（得点: " + maxScore + "）");
     }
+
+    private static String normalizeLastChar(String lastChar, String word) {
+        // 伸ばし棒なら直前の文字
+        if (lastChar.equals("ー") && word.length() > 1) {
+            lastChar = word.substring(word.length() - 2, word.length() - 1);
+        }
+
+        // 小文字なら大文字に変換
+        Map<String, String> smallToLarge = Map.of(
+            "ぁ", "あ", "ぃ", "い", "ぅ", "う", "ぇ", "え", "ぉ", "お",
+            "ゃ", "や", "ゅ", "ゆ", "ょ", "よ",
+            "っ", "つ",
+            "ゎ", "わ"
+        );
+
+        if (smallToLarge.containsKey(lastChar)) {
+            lastChar = smallToLarge.get(lastChar);
+        }
+
+        return lastChar;
+    }
 }
+
