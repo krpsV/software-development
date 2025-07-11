@@ -155,7 +155,7 @@ public class ShiritoriServer {
                 try {
                     socket.close();
                 } catch (IOException e) {
-                    System.err.println("ソケットクローズエラー: " + e.getMessage());
+                    System.err.println("Socketクローズエラー: " + e.getMessage());
                 }
             }
         }
