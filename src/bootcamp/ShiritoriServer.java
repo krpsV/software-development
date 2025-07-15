@@ -11,13 +11,13 @@ public class ShiritoriServer {
     private static final Map<String, Integer> scores = new HashMap<>();
     private static final Map<String, String> longestWords = new HashMap<>();
     private static final Set<String> usedWords = new HashSet<>();
-    private static String lastWord = "„Çä";
+    private static String lastWord = "ÇË";
     private static boolean gameEnded = false;
     private static final AtomicInteger playerCount = new AtomicInteger(1);
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(PORT);
-        System.out.println("„Åó„Çä„Å®„Çä„Çµ„Éº„Éê„ÉºËµ∑Âãï „Éù„Éº„Éà: " + PORT);
+        System.out.println("ÇµÇËÇ∆ÇËÉTÅ[ÉoÅ[ãNìÆ É|Å[Ég: " + PORT);
 
         try {
             while (true) {
@@ -43,7 +43,7 @@ public class ShiritoriServer {
             this.socket = socket;
             this.in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "MS932"));
             this.out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "MS932"), true);
-            this.playerName = "„Éó„É¨„Ç§„É§„Éº" + playerCount.getAndIncrement();
+            this.playerName = "ÉvÉåÉCÉÑÅ[" + playerCount.getAndIncrement();
             synchronized (scores) {
                 scores.put(playerName, 0);
                 longestWords.put(playerName, "");
@@ -51,8 +51,8 @@ public class ShiritoriServer {
         }
 
         public void run() {
-            out.println("„Åó„Çä„Å®„ÇäÈñãÂßã„ÄÇÊúÄÂàù„ÅÆÊñáÂ≠ó„ÅØ„Äé" + lastWord + "„Äè„Åß„Åô„ÄÇÂçòË™û„ÇíÂÖ•ÂäõÔºà/quit „Åæ„Åü„ÅØ /resetÔºâ:");
-            broadcast(playerName + "„ÅåÂèÇÂä†„Åó„Åæ„Åó„Åü„ÄÇ");
+            out.println("ÇµÇËÇ∆ÇËäJénÅBç≈èâÇÃï∂éöÇÕÅw" + lastWord + "ÅxÇ≈Ç∑ÅBíPåÍÇì¸óÕÅi/quit Ç‹ÇΩÇÕ /resetÅj:");
+            broadcast(playerName + "Ç™éQâ¡ÇµÇ‹ÇµÇΩÅB");
 
             try {
                 while (true) {
@@ -66,26 +66,26 @@ public class ShiritoriServer {
                         }
 
                         if (gameEnded) {
-                            out.println("„Ç≤„Éº„É†„ÅØÁµÇ‰∫Ü„Åó„Åæ„Åó„Åü„ÄÇ/reset „ÅßÂÜçÈñã„Åß„Åç„Åæ„Åô„ÄÇ");
+                            out.println("ÉQÅ[ÉÄÇÕèIóπÇµÇ‹ÇµÇΩÅB/reset Ç≈çƒäJÇ≈Ç´Ç‹Ç∑ÅB");
                             continue;
                         }
 
                         String normalized = normalize(input);
                         if (usedWords.contains(normalized)) {
-                            out.println("Êó¢„Å´‰ΩøÁî®Ê∏à„Åø„ÅÆÂçòË™û„Åß„Åô„ÄÇ");
+                            out.println("ä˘Ç…égópçœÇ›ÇÃíPåÍÇ≈Ç∑ÅB");
                             continue;
                         }
                         if (!normalized.startsWith(lastWord)) {
-                            out.println("„Äé" + lastWord + "„Äè„ÅßÂßã„Åæ„ÇãÂçòË™û„ÇíÂÖ•Âäõ„Åó„Å¶„Åè„Å†„Åï„ÅÑ„ÄÇ");
+                            out.println("Åw" + lastWord + "ÅxÇ≈énÇ‹ÇÈíPåÍÇì¸óÕÇµÇƒÇ≠ÇæÇ≥Ç¢ÅB");
                             continue;
                         }
 
-                        if (normalized.endsWith("„Çì")) {
+                        if (normalized.endsWith("ÇÒ")) {
                             scores.put(playerName, 0);
                             gameEnded = true;
-                            broadcast(playerName + "„Åå„Äå„Çì„Äç„ÅßÁµÇ‰∫Ü„ÄÇ„Ç≤„Éº„É†ÁµÇ‰∫Ü„ÄÇ");
+                            broadcast(playerName + "Ç™ÅuÇÒÅvÇ≈èIóπÅBÉQÅ[ÉÄèIóπÅB");
                             determineWinner();
-                            continue; // ‚Üê ÈÄÄÂá∫„Åõ„ÅöÊ¨°„ÅÆÂÖ•Âäõ„ÇíÂæÖ„Å§
+                            continue; // Å© ëﬁèoÇπÇ∏éüÇÃì¸óÕÇë“Ç¬
                         }
 
                         usedWords.add(normalized);
@@ -96,7 +96,7 @@ public class ShiritoriServer {
                             longestWords.put(playerName, input);
                         }
 
-                        broadcast(playerName + ": " + input + "ÔºàÂæóÁÇπ: " + scores.get(playerName) + "Ôºâ");
+                        broadcast(playerName + ": " + input + "Åiìæì_: " + scores.get(playerName) + "Åj");
                         lastWord = getNextHead(normalized);
                     }
                 }
@@ -106,7 +106,7 @@ public class ShiritoriServer {
                 try {
                     socket.close();
                 } catch (IOException ignored) {}
-                broadcast(playerName + "„ÅåÈÄÄÂá∫„Åó„Åæ„Åó„Åü„ÄÇ");
+                broadcast(playerName + "Ç™ëﬁèoÇµÇ‹ÇµÇΩÅB");
             }
         }
     }
@@ -120,12 +120,12 @@ public class ShiritoriServer {
     }
 
     private static void resetGame(String requestedBy) {
-        lastWord = "„Çä";
+        lastWord = "ÇË";
         gameEnded = false;
         usedWords.clear();
         scores.replaceAll((k, v) -> 0);
         longestWords.replaceAll((k, v) -> "");
-        broadcast("üé≤ " + requestedBy + "„Åå„Ç≤„Éº„É†„Çí„É™„Çª„ÉÉ„Éà„Åó„Åæ„Åó„Åü„ÄÇÊúÄÂàù„ÅÆÊñáÂ≠ó„ÅØ„Äé" + lastWord + "„Äè„Åß„Åô„ÄÇ");
+        broadcast("? " + requestedBy + "Ç™ÉQÅ[ÉÄÇÉäÉZÉbÉgÇµÇ‹ÇµÇΩÅBç≈èâÇÃï∂éöÇÕÅw" + lastWord + "ÅxÇ≈Ç∑ÅB");
     }
 
     private static void determineWinner() {
@@ -144,26 +144,26 @@ public class ShiritoriServer {
 
         if (longestPlayer != null) {
             scores.put(longestPlayer, scores.get(longestPlayer) + 100);
-            broadcast("üéÅ ÊúÄÈï∑ÂçòË™û„ÅÆ " + longestPlayer + " „Å´ +100ÁÇπ„Éú„Éº„Éä„ÇπÔºÅ");
+            broadcast("? ç≈í∑íPåÍÇÃ " + longestPlayer + " Ç… +100ì_É{Å[ÉiÉXÅI");
         }
 
         String winner = Collections.max(scores.entrySet(), Map.Entry.comparingByValue()).getKey();
-        broadcast("üèÜ ÂãùËÄÖ: " + winner + "ÔºàÂæóÁÇπ: " + scores.get(winner) + "Ôºâ");
+        broadcast("? èüé“: " + winner + "Åiìæì_: " + scores.get(winner) + "Åj");
     }
 
     private static String normalize(String word) {
-        return word.replace("„Éº", "");
+        return word.replace("Å[", "");
     }
 
     private static String getNextHead(String word) {
         String ch = word.substring(word.length() - 1);
-        if (ch.equals("„Éº") && word.length() >= 2) {
+        if (ch.equals("Å[") && word.length() >= 2) {
             ch = word.substring(word.length() - 2, word.length() - 1);
         }
 
         Map<String, String> small = Map.of(
-            "„ÅÅ", "„ÅÇ", "„ÅÉ", "„ÅÑ", "„ÅÖ", "„ÅÜ", "„Åá", "„Åà", "„Åâ", "„Åä",
-            "„ÇÉ", "„ÇÑ", "„ÇÖ", "„ÇÜ", "„Çá", "„Çà", "„Å£", "„Å§", "„Çé", "„Çè"
+            "Çü", "Ç†", "Ç°", "Ç¢", "Ç£", "Ç§", "Ç•", "Ç¶", "Çß", "Ç®",
+            "Ç·", "Ç‚", "Ç„", "Ç‰", "ÇÂ", "ÇÊ", "Ç¡", "Ç¬", "ÇÏ", "ÇÌ"
         );
 
         if (small.containsKey(ch)) {
