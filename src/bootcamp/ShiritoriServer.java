@@ -1,163 +1,175 @@
-//package bootcamp;
+// package bootcamp;
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.nio.charset.Charset;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ShiritoriServer {
-    public static int PORT = 8081;
-    private static final Set<String> usedWords = ConcurrentHashMap.newKeySet();
-    private static final List<ClientHandler> clients = new CopyOnWriteArrayList<>();
-    private static String currentLastChar = "";
-    private static boolean gameStarted = false;
-    
+    private static final int PORT = 8081;
+    private static final List<ClientHandler> clients = new ArrayList<>();
+    private static final Map<String, Integer> scores = new HashMap<>();
+    private static final Map<String, String> longestWords = new HashMap<>();
+    private static final Set<String> usedWords = new HashSet<>();
+    private static String lastWord = "ã‚Š";
+    private static boolean gameEnded = false;
+    private static final AtomicInteger playerCount = new AtomicInteger(1);
+
     public static void main(String[] args) throws IOException {
-        if (args.length >= 1) {
-            PORT = Integer.parseInt(args[0]);
-        }
-        
         ServerSocket serverSocket = new ServerSocket(PORT);
-        System.out.println("‚µ‚è‚Æ‚èƒT[ƒo[ŠJn: ƒ|[ƒg " + PORT);
-        System.out.println("ƒNƒ‰ƒCƒAƒ“ƒg‚ÌÚ‘±‚ğ‘Ò‹@’†...");
-        
+        System.out.println("ã—ã‚Šã¨ã‚Šã‚µãƒ¼ãƒãƒ¼èµ·å‹• ãƒãƒ¼ãƒˆ: " + PORT);
+
         try {
             while (true) {
-                Socket clientSocket = serverSocket.accept();
-                ClientHandler handler = new ClientHandler(clientSocket, clients.size() + 1);
-                clients.add(handler);
-                new Thread(handler).start();
-                
-                broadcastMessage("ƒvƒŒƒCƒ„[" + handler.playerId + "‚ªQ‰Á‚µ‚Ü‚µ‚½BŒ»İ" + clients.size() + "l");
-                if (!gameStarted && clients.size() >= 2) {
-                    gameStarted = true;
-                    broadcastMessage("ƒQ[ƒ€ŠJnIÅ‰‚Ì’PŒê‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B");
+                Socket socket = serverSocket.accept();
+                ClientHandler handler = new ClientHandler(socket);
+                synchronized (clients) {
+                    clients.add(handler);
                 }
+                new Thread(handler).start();
             }
         } finally {
             serverSocket.close();
         }
     }
-    
-    public static synchronized void broadcastMessage(String message) {
-        System.out.println("ƒuƒ[ƒhƒLƒƒƒXƒg: " + message);
-        for (ClientHandler client : clients) {
-            client.sendMessage(message);
-        }
-    }
-    
-    public static synchronized boolean processWord(String word, int playerId) {
-        // •¶š‚Ì³‹K‰»
-        String normalizedWord = normalizeWord(word);
-        byte[] ms932Bytes = normalizedWord.getBytes(Charset.forName("MS932"));
-        String decodedNomalizedWord = new String(ms932Bytes, Charset.forName("MS932"));
-        
-        // g—pÏ‚İ’PŒêƒ`ƒFƒbƒN
-        if (usedWords.contains(word)) {
-            return false;
-        }
-        
-        // ‚µ‚è‚Æ‚èƒ‹[ƒ‹ƒ`ƒFƒbƒN
-        if (!currentLastChar.isEmpty()) {
-            String firstChar = getFirstChar(decodedNomalizedWord);
-            if (!firstChar.equals(currentLastChar)) {
-                return false;
-            }
-        }
-        
-        // u‚ñv‚ÅI‚í‚é’PŒêƒ`ƒFƒbƒN
-        String lastChar = getLastChar(decodedNomalizedWord);
-        if (lastChar.equals("‚ñ")) {
-            usedWords.add(decodedNomalizedWord);
-            broadcastMessage("ƒvƒŒƒCƒ„[" + playerId + ": " + word + " ¨u‚ñv‚ÅI‚í‚Á‚½‚Ì‚ÅƒvƒŒƒCƒ„[" + playerId + "‚Ì•‰‚¯I");
-            broadcastMessage("ƒQ[ƒ€I—¹BV‚µ‚¢ƒQ[ƒ€‚ğŠJn‚·‚é‚É‚Í/reset‚Æ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B");
-            return true;
-        }
-        
-        // ’PŒê‚ğó—
-        usedWords.add(decodedNomalizedWord);
-        currentLastChar = lastChar;
-        broadcastMessage("ƒvƒŒƒCƒ„[" + playerId + ": " + word + " (Ÿ‚Íu" + currentLastChar + "v‚©‚ç)");
-        return true;
-    }
-    
-    public static synchronized void resetGame() {
-        usedWords.clear();
-        currentLastChar = "";
-        broadcastMessage("ƒQ[ƒ€ƒŠƒZƒbƒgIV‚µ‚¢ƒQ[ƒ€‚ğŠJn‚µ‚Ü‚·B");
-    }
-    
-    private static String normalizeWord(String word) {
-        // L‚Î‚µ–_‚ğíœ
-        return word.replaceAll("[", "");
-    }
-    
-    private static String getFirstChar(String word) {
-        if (word.isEmpty()) return "";
-        return String.valueOf(word.charAt(0));
-    }
-    
-    private static String getLastChar(String word) {
-        if (word.isEmpty()) return "";
-        return String.valueOf(word.charAt(word.length() - 1));
-    }
-    
-    static class ClientHandler implements Runnable {
+
+    private static class ClientHandler implements Runnable {
         private final Socket socket;
-        private final int playerId;
-        private PrintWriter out;
-        
-        public ClientHandler(Socket socket, int playerId) {
+        private final BufferedReader in;
+        private final PrintWriter out;
+        private final String playerName;
+
+        public ClientHandler(Socket socket) throws IOException {
             this.socket = socket;
-            this.playerId = playerId;
-        }
-        
-        public void sendMessage(String message) {
-            if (out != null) {
-                out.println(message);
+            this.in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "MS932"));
+            this.out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "MS932"), true);
+            this.playerName = "ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼" + playerCount.getAndIncrement();
+            synchronized (scores) {
+                scores.put(playerName, 0);
+                longestWords.put(playerName, "");
             }
         }
-        
-        @Override
+
         public void run() {
+            out.println("ã—ã‚Šã¨ã‚Šé–‹å§‹ã€‚æœ€åˆã®æ–‡å­—ã¯ã€" + lastWord + "ã€ã§ã™ã€‚å˜èªã‚’å…¥åŠ›ï¼ˆ/quit ã¾ãŸã¯ /resetï¼‰:");
+            broadcast(playerName + "ãŒå‚åŠ ã—ã¾ã—ãŸã€‚");
+
             try {
-                BufferedReader in = new BufferedReader(
-                    new InputStreamReader(socket.getInputStream(), Charset.forName("MS932")));
-                out = new PrintWriter(
-                    new BufferedWriter(
-                        new OutputStreamWriter(socket.getOutputStream(), Charset.forName("MS932"))), true);
+                while (true) {
+                    String input = in.readLine();
+                    if (input == null || input.equals("/quit")) break;
 
-                
-                sendMessage("‚µ‚è‚Æ‚èƒQ[ƒ€‚Ö‚æ‚¤‚±‚»I‚ ‚È‚½‚ÍƒvƒŒƒCƒ„[" + playerId + "‚Å‚·B");
-                sendMessage("ƒRƒ}ƒ“ƒh: /reset (ƒQ[ƒ€ƒŠƒZƒbƒg), /quit (I—¹)");
-                
-                String input;
-                while ((input = in.readLine()) != null) {
-
-                    if (input.equals("/quit") || input.equals("END")) {
-                        break;
-                    } else if (input.equals("/reset")) {
-                        resetGame();
-                    } else if (!input.trim().isEmpty()) {
-                        if (!processWord(input.trim(), playerId)) {
-                            sendMessage("–³Œø‚È’PŒê‚Å‚·B——R: ‚·‚Å‚Ég—pÏ‚İ ‚Ü‚½‚Í ‚µ‚è‚Æ‚èƒ‹[ƒ‹ˆá”½");
+                    synchronized (ShiritoriServer.class) {
+                        if (input.equals("/reset")) {
+                            resetGame(playerName);
+                            continue;
                         }
+
+                        if (gameEnded) {
+                            out.println("ã‚²ãƒ¼ãƒ ã¯çµ‚äº†ã—ã¾ã—ãŸã€‚/reset ã§å†é–‹ã§ãã¾ã™ã€‚");
+                            continue;
+                        }
+
+                        String normalized = normalize(input);
+                        if (usedWords.contains(normalized)) {
+                            out.println("æ—¢ã«ä½¿ç”¨æ¸ˆã¿ã®å˜èªã§ã™ã€‚");
+                            continue;
+                        }
+                        if (!normalized.startsWith(lastWord)) {
+                            out.println("ã€" + lastWord + "ã€ã§å§‹ã¾ã‚‹å˜èªã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚");
+                            continue;
+                        }
+
+                        if (normalized.endsWith("ã‚“")) {
+                            scores.put(playerName, 0);
+                            gameEnded = true;
+                            broadcast(playerName + "ãŒã€Œã‚“ã€ã§çµ‚äº†ã€‚ã‚²ãƒ¼ãƒ çµ‚äº†ã€‚");
+                            determineWinner();
+                            continue; // â† é€€å‡ºã›ãšæ¬¡ã®å…¥åŠ›ã‚’å¾…ã¤
+                        }
+
+                        usedWords.add(normalized);
+                        int points = input.length() * 10;
+                        scores.put(playerName, scores.get(playerName) + points);
+
+                        if (input.length() > longestWords.get(playerName).length()) {
+                            longestWords.put(playerName, input);
+                        }
+
+                        broadcast(playerName + ": " + input + "ï¼ˆå¾—ç‚¹: " + scores.get(playerName) + "ï¼‰");
+                        lastWord = getNextHead(normalized);
                     }
                 }
-                
             } catch (IOException e) {
-                System.err.println("ƒvƒŒƒCƒ„[" + playerId + "‚ÌƒGƒ‰[: " + e.getMessage());
+                e.printStackTrace();
             } finally {
-                clients.remove(this);
-                broadcastMessage("ƒvƒŒƒCƒ„[" + playerId + "‚ª‘Şo‚µ‚Ü‚µ‚½BŒ»İ" + clients.size() + "l");
                 try {
                     socket.close();
-                } catch (IOException e) {
-                    System.err.println("SocketƒNƒ[ƒYƒGƒ‰[: " + e.getMessage());
-                }
+                } catch (IOException ignored) {}
+                broadcast(playerName + "ãŒé€€å‡ºã—ã¾ã—ãŸã€‚");
             }
         }
+    }
+
+    private static void broadcast(String message) {
+        synchronized (clients) {
+            for (ClientHandler client : clients) {
+                client.out.println(message);
+            }
+        }
+    }
+
+    private static void resetGame(String requestedBy) {
+        lastWord = "ã‚Š";
+        gameEnded = false;
+        usedWords.clear();
+        scores.replaceAll((k, v) -> 0);
+        longestWords.replaceAll((k, v) -> "");
+        broadcast("ğŸ² " + requestedBy + "ãŒã‚²ãƒ¼ãƒ ã‚’ãƒªã‚»ãƒƒãƒˆã—ã¾ã—ãŸã€‚æœ€åˆã®æ–‡å­—ã¯ã€" + lastWord + "ã€ã§ã™ã€‚");
+    }
+
+    private static void determineWinner() {
+        String longestPlayer = null;
+        int maxLen = 0;
+
+        for (Map.Entry<String, String> entry : longestWords.entrySet()) {
+            String player = entry.getKey();
+            String word = entry.getValue();
+            if (scores.get(player) == 0) continue;
+            if (word.length() > maxLen) {
+                maxLen = word.length();
+                longestPlayer = player;
+            }
+        }
+
+        if (longestPlayer != null) {
+            scores.put(longestPlayer, scores.get(longestPlayer) + 100);
+            broadcast("ğŸ æœ€é•·å˜èªã® " + longestPlayer + " ã« +100ç‚¹ãƒœãƒ¼ãƒŠã‚¹ï¼");
+        }
+
+        String winner = Collections.max(scores.entrySet(), Map.Entry.comparingByValue()).getKey();
+        broadcast("ğŸ† å‹è€…: " + winner + "ï¼ˆå¾—ç‚¹: " + scores.get(winner) + "ï¼‰");
+    }
+
+    private static String normalize(String word) {
+        return word.replace("ãƒ¼", "");
+    }
+
+    private static String getNextHead(String word) {
+        String ch = word.substring(word.length() - 1);
+        if (ch.equals("ãƒ¼") && word.length() >= 2) {
+            ch = word.substring(word.length() - 2, word.length() - 1);
+        }
+
+        Map<String, String> small = Map.of(
+            "ã", "ã‚", "ãƒ", "ã„", "ã…", "ã†", "ã‡", "ãˆ", "ã‰", "ãŠ",
+            "ã‚ƒ", "ã‚„", "ã‚…", "ã‚†", "ã‚‡", "ã‚ˆ", "ã£", "ã¤", "ã‚", "ã‚"
+        );
+
+        if (small.containsKey(ch)) {
+            ch = small.get(ch);
+        }
+
+        return ch;
     }
 }
