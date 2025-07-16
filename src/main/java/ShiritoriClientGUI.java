@@ -10,6 +10,7 @@ public class ShiritoriClientGUI extends JFrame {
     private JTextField inputField;
     private JButton sendButton;
     private JButton resetButton;
+    private JButton quitButton;
 
     private BufferedReader in;
     private PrintWriter out;
@@ -29,6 +30,7 @@ public class ShiritoriClientGUI extends JFrame {
         JPanel inputPanel = new JPanel(new BorderLayout());
         inputField = new JTextField();
         sendButton = new JButton("送信");
+        quitButton = new JButton("退出");
         resetButton = new JButton("リセット");
 
         inputPanel.add(inputField, BorderLayout.CENTER);
@@ -79,6 +81,11 @@ public class ShiritoriClientGUI extends JFrame {
         // リセットボタンの処理
         resetButton.addActionListener(e -> {
             out.println("/reset");
+        });
+
+        quitButton.addActionListener(e -> {
+            out.println("/quit");
+            System.exit(0);
         });
 
         setVisible(true);
