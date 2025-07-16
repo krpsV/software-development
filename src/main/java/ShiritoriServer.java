@@ -10,15 +10,15 @@ public class ShiritoriServer {
     private static final Map<String, Integer> scores = new HashMap<>();
     private static final Map<String, String> longestWords = new HashMap<>();
     private static final Set<String> usedWords = new HashSet<>();
-    private static String lastWord = "ã‚Š";
+    private static String lastWord = "‚è";
     private static boolean gameEnded = false;
     private static final AtomicInteger playerCount = new AtomicInteger(1);
 
-    // çŒ¶äºˆæ™‚é–“ä¸­ã®å…¥åŠ›ã‚’ä¸€æ™‚çš„ã«ä¿ç®¡
+    // —P—\ŠÔ’†‚Ì“ü—Í‚ğˆê“I‚É•ÛŠÇ
     private static final List<PendingEntry> pendingEntries = new ArrayList<>();
     private static boolean waiting = false;
 
-    // 30ç§’ã‚¿ã‚¤ãƒãƒ¼
+    // 30•bƒ^ƒCƒ}[
     private static final Timer inactivityTimer = new Timer(true);
     private static TimerTask currentInactivityTask;
 
@@ -36,7 +36,7 @@ public class ShiritoriServer {
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(PORT);
-        System.out.println("ã—ã‚Šã¨ã‚Šã‚µãƒ¼ãƒãƒ¼èµ·å‹• ãƒãƒ¼ãƒˆ: " + PORT);
+        System.out.println("‚µ‚è‚Æ‚èƒT[ƒo[‹N“® ƒ|[ƒg: " + PORT);
 
         try {
             while (true) {
@@ -62,7 +62,7 @@ public class ShiritoriServer {
             this.socket = socket;
             this.in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "MS932"));
             this.out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "MS932"), true);
-            this.playerName = "ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼" + playerCount.getAndIncrement();
+            this.playerName = "ƒvƒŒƒCƒ„[" + playerCount.getAndIncrement();
             synchronized (scores) {
                 scores.put(playerName, 0);
                 longestWords.put(playerName, "");
@@ -70,8 +70,8 @@ public class ShiritoriServer {
         }
 
         public void run() {
-            out.println("ã—ã‚Šã¨ã‚Šé–‹å§‹ã€‚æœ€åˆã®æ–‡å­—ã¯ã€" + lastWord + "ã€ã§ã™ã€‚å˜èªã‚’å…¥åŠ›ã—ã¦ãã ã•ã„:");
-            broadcast(playerName + "ãŒå‚åŠ ã—ã¾ã—ãŸã€‚");
+            out.println("‚µ‚è‚Æ‚èŠJnBÅ‰‚Ì•¶š‚Íw" + lastWord + "x‚Å‚·B’PŒê‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢:");
+            broadcast(playerName + "‚ªQ‰Á‚µ‚Ü‚µ‚½B");
 
             try {
                 while (true) {
@@ -80,24 +80,24 @@ public class ShiritoriServer {
 
                     if (input.equals("/reset")) {
                         resetGame();
-                        broadcast(playerName + "ãŒã‚²ãƒ¼ãƒ ã‚’ãƒªã‚»ãƒƒãƒˆã—ã¾ã—ãŸã€‚æœ€åˆã®æ–‡å­—ã¯ã€" + lastWord + "ã€ã§ã™ã€‚");
+                        broadcast(playerName + "‚ªƒQ[ƒ€‚ğƒŠƒZƒbƒg‚µ‚Ü‚µ‚½BÅ‰‚Ì•¶š‚Íw" + lastWord + "x‚Å‚·B");
                         continue;
                     }
 
                     if (gameEnded) {
-                        out.println("ã‚²ãƒ¼ãƒ ã¯çµ‚äº†ã—ã¾ã—ãŸã€‚/reset ã§å†é–‹ã§ãã¾ã™ã€‚");
+                        out.println("ƒQ[ƒ€‚ÍI—¹‚µ‚Ü‚µ‚½B/reset ‚ÅÄŠJ‚Å‚«‚Ü‚·B");
                         continue;
                     }
 
-                    // å½¢å¼: å˜èª##é€ä¿¡æ™‚é–“
+                    // Œ`®: ’PŒê##‘—MŠÔ
                     if (!input.contains("##")) {
-                        out.println("å½¢å¼ãŒæ­£ã—ãã‚ã‚Šã¾ã›ã‚“ã€‚ä¾‹: ã•ãã‚‰##1651234567890");
+                        out.println("Œ`®‚ª³‚µ‚­‚ ‚è‚Ü‚¹‚ñB—á: ‚³‚­‚ç##1651234567890");
                         continue;
                     }
 
                     String[] parts = input.split("##");
                     if (parts.length != 2) {
-                        out.println("å…¥åŠ›å½¢å¼ã‚¨ãƒ©ãƒ¼: å˜èª##é€ä¿¡æ™‚é–“");
+                        out.println("“ü—ÍŒ`®ƒGƒ‰[: ’PŒê##‘—MŠÔ");
                         continue;
                     }
 
@@ -106,14 +106,14 @@ public class ShiritoriServer {
                     try {
                         timestamp = Long.parseLong(parts[1]);
                     } catch (NumberFormatException e) {
-                        out.println("é€ä¿¡æ™‚åˆ»ã®å½¢å¼ãŒä¸æ­£ã§ã™ã€‚");
+                        out.println("‘—M‚ÌŒ`®‚ª•s³‚Å‚·B");
                         continue;
                     }
 
                     synchronized (ShiritoriServer.class) {
                         String normalized = normalize(word);
                         if (usedWords.contains(normalized) || !normalized.startsWith(lastWord)) {
-                            out.println("ç„¡åŠ¹ãªå˜èªã§ã™ã€‚");
+                            out.println("–³Œø‚È’PŒê‚Å‚·B");
                             continue;
                         }
 
@@ -133,7 +133,7 @@ public class ShiritoriServer {
                 e.printStackTrace();
             } finally {
                 try { socket.close(); } catch (IOException ignored) {}
-                broadcast(playerName + "ãŒé€€å‡ºã—ã¾ã—ãŸã€‚");
+                broadcast(playerName + "‚ª‘Şo‚µ‚Ü‚µ‚½B");
             }
         }
 
@@ -155,10 +155,10 @@ public class ShiritoriServer {
             usedWords.add(normalized);
             String playerName = selected.playerName;
 
-            if (normalized.endsWith("ã‚“")) {
+            if (normalized.endsWith("‚ñ")) {
                 scores.put(playerName, 0);
                 gameEnded = true;
-                broadcast(playerName + "ãŒã€Œã‚“ã€ã§çµ‚äº†ã€‚ã‚²ãƒ¼ãƒ çµ‚äº†ã€‚");
+                broadcast(playerName + "‚ªu‚ñv‚ÅI—¹BƒQ[ƒ€I—¹B");
                 determineWinner();
             } else {
                 int points = selected.word.length() * 10;
@@ -167,9 +167,9 @@ public class ShiritoriServer {
                     longestWords.put(playerName, selected.word);
                 }
                 lastWord = getNextHead(normalized);
-                broadcast(playerName + ": " + selected.word + "ï¼ˆå¾—ç‚¹: " + scores.get(playerName) + "ï¼‰");
+                broadcast(playerName + ": " + selected.word + "i“¾“_: " + scores.get(playerName) + "j");
 
-                // 30ç§’ã‚¿ã‚¤ãƒãƒ¼å†è¨­å®š
+                // 30•bƒ^ƒCƒ}[Äİ’è
                 if (currentInactivityTask != null) {
                     currentInactivityTask.cancel();
                 }
@@ -178,7 +178,7 @@ public class ShiritoriServer {
                         synchronized (ShiritoriServer.class) {
                             if (!gameEnded) {
                                 gameEnded = true;
-                                broadcast("30ç§’é–“å…¥åŠ›ãŒãªã‹ã£ãŸãŸã‚ã€ã‚²ãƒ¼ãƒ ã‚’çµ‚äº†ã—ã¾ã™ã€‚");
+                                broadcast("30•bŠÔ“ü—Í‚ª‚È‚©‚Á‚½‚½‚ßAƒQ[ƒ€‚ğI—¹‚µ‚Ü‚·B");
                                 determineWinner();
                             }
                         }
@@ -201,7 +201,7 @@ public class ShiritoriServer {
     }
 
     private static void resetGame() {
-        lastWord = "ã‚Š";
+        lastWord = "‚è";
         gameEnded = false;
         usedWords.clear();
         scores.replaceAll((k, v) -> 0);
@@ -229,22 +229,22 @@ public class ShiritoriServer {
 
         if (longestPlayer != null) {
             scores.put(longestPlayer, scores.get(longestPlayer) + 100);
-            broadcast("æœ€é•·å˜èªã® " + longestPlayer + " ã« +100ç‚¹");
+            broadcast("Å’·’PŒê‚Ì " + longestPlayer + " ‚É +100“_");
         }
 
         String winner = Collections.max(scores.entrySet(), Map.Entry.comparingByValue()).getKey();
-        broadcast("å‹è€…: " + winner + "ï¼ˆå¾—ç‚¹: " + scores.get(winner) + "ï¼‰");
+        broadcast("ŸÒ: " + winner + "i“¾“_: " + scores.get(winner) + "j");
     }
 
     private static String normalize(String word) {
-        return word.replace("ãƒ¼", "");
+        return word.replace("[", "");
     }
 
     private static String getNextHead(String word) {
         String ch = word.substring(word.length() - 1);
-        Map<String, String> small = Map.of("ã", "ã‚", "ãƒ", "ã„", "ã…", "ã†", "ã‡", "ãˆ", "ã‰", "ãŠ",
-            "ã‚ƒ", "ã‚„", "ã‚…", "ã‚†", "ã‚‡", "ã‚ˆ", "ã£", "ã¤", "ã‚", "ã‚");
-        if (ch.equals("ãƒ¼") && word.length() >= 2) {
+        Map<String, String> small = Map.of("‚Ÿ", "‚ ", "‚¡", "‚¢", "‚£", "‚¤", "‚¥", "‚¦", "‚§", "‚¨",
+            "‚á", "‚â", "‚ã", "‚ä", "‚å", "‚æ", "‚Á", "‚Â", "‚ì", "‚í");
+        if (ch.equals("[") && word.length() >= 2) {
             ch = word.substring(word.length() - 2, word.length() - 1);
         }
         if (small.containsKey(ch)) {

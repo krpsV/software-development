@@ -16,7 +16,7 @@ public class ShiritoriClientGUI extends JFrame {
     private Socket socket;
 
     public ShiritoriClientGUI(String host, int port) {
-        setTitle("ã—ã‚Šã¨ã‚Šã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆ");
+        setTitle("‚µ‚è‚Æ‚èƒNƒ‰ƒCƒAƒ“ƒg");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(500, 400);
         setLayout(new BorderLayout());
@@ -28,8 +28,8 @@ public class ShiritoriClientGUI extends JFrame {
 
         JPanel inputPanel = new JPanel(new BorderLayout());
         inputField = new JTextField();
-        sendButton = new JButton("é€ä¿¡");
-        resetButton = new JButton("ãƒªã‚»ãƒƒãƒˆ");
+        sendButton = new JButton("‘—M");
+        resetButton = new JButton("ƒŠƒZƒbƒg");
 
         inputPanel.add(inputField, BorderLayout.CENTER);
 
@@ -41,17 +41,17 @@ public class ShiritoriClientGUI extends JFrame {
 
         add(inputPanel, BorderLayout.SOUTH);
 
-        // ã‚½ã‚±ãƒƒãƒˆæ¥ç¶š
+        // ƒ\ƒPƒbƒgÚ‘±
         try {
             socket = new Socket(host, port);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream(), Charset.forName("MS932")));
             out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), Charset.forName("MS932")), true);
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "ã‚µãƒ¼ãƒãƒ¼ã«æ¥ç¶šã§ãã¾ã›ã‚“ã§ã—ãŸã€‚", "ã‚¨ãƒ©ãƒ¼", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "ƒT[ƒo[‚ÉÚ‘±‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B", "ƒGƒ‰[", JOptionPane.ERROR_MESSAGE);
             System.exit(1);
         }
 
-        // å—ä¿¡ç”¨ã‚¹ãƒ¬ãƒƒãƒ‰
+        // óM—pƒXƒŒƒbƒh
         Thread receiverThread = new Thread(() -> {
             try {
                 String message;
@@ -64,19 +64,19 @@ public class ShiritoriClientGUI extends JFrame {
                 }
             } catch (IOException e) {
                 SwingUtilities.invokeLater(() -> {
-                    messageArea.append("å—ä¿¡ã‚¨ãƒ©ãƒ¼: " + e.getMessage() + "\n");
+                    messageArea.append("óMƒGƒ‰[: " + e.getMessage() + "\n");
                 });
             }
         });
         receiverThread.start();
 
-        // é€ä¿¡ãƒœã‚¿ãƒ³ã®å‡¦ç†
+        // ‘—Mƒ{ƒ^ƒ“‚Ìˆ—
         sendButton.addActionListener(e -> sendWord());
 
-        // Enterã‚­ãƒ¼ã§é€ä¿¡
+        // EnterƒL[‚Å‘—M
         inputField.addActionListener(e -> sendWord());
 
-        // ãƒªã‚»ãƒƒãƒˆãƒœã‚¿ãƒ³ã®å‡¦ç†
+        // ƒŠƒZƒbƒgƒ{ƒ^ƒ“‚Ìˆ—
         resetButton.addActionListener(e -> {
             out.println("/reset");
         });
@@ -93,7 +93,7 @@ public class ShiritoriClientGUI extends JFrame {
         if (input.equals("/quit") || input.equals("/reset")) {
             out.println(input);
         } else {
-            // å˜èªã®ã¿ãƒ¦ãƒ¼ã‚¶ãƒ¼ã«å…¥åŠ›ã•ã›ã€é€ä¿¡æ™‚ã«æ™‚åˆ»ã‚’ä»˜åŠ ã—ã¦é€ã‚‹
+            // ’PŒê‚Ì‚İƒ†[ƒU[‚É“ü—Í‚³‚¹A‘—M‚É‚ğ•t‰Á‚µ‚Ä‘—‚é
             long timestamp = System.currentTimeMillis();
             out.println(input + "##" + timestamp);
         }
