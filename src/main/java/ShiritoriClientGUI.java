@@ -1,9 +1,6 @@
-
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.Charset;
@@ -13,90 +10,100 @@ public class ShiritoriClientGUI extends JFrame {
     private JTextField inputField;
     private JButton sendButton;
     private JButton resetButton;
-    private JButton quitButton;
 
-    private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
+    private Socket socket;
 
-    public ShiritoriClientGUI() {
-        super("����Ƃ�Q�[���N���C�A���g");
+    public ShiritoriClientGUI(String host, int port) {
+        setTitle("しりとりクライアント");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(500, 400);
+        setLayout(new BorderLayout());
 
         messageArea = new JTextArea();
         messageArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(messageArea);
-
-        inputField = new JTextField();
-        sendButton = new JButton("���M");
-        resetButton = new JButton("/reset");
-        quitButton = new JButton("/quit");
+        add(scrollPane, BorderLayout.CENTER);
 
         JPanel inputPanel = new JPanel(new BorderLayout());
+        inputField = new JTextField();
+        sendButton = new JButton("送信");
+        resetButton = new JButton("リセット");
+
         inputPanel.add(inputField, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(sendButton);
         buttonPanel.add(resetButton);
-        buttonPanel.add(quitButton);
+
         inputPanel.add(buttonPanel, BorderLayout.EAST);
 
-        add(scrollPane, BorderLayout.CENTER);
         add(inputPanel, BorderLayout.SOUTH);
 
-        sendButton.addActionListener(e -> sendMessage());
-        inputField.addActionListener(e -> sendMessage());
-        resetButton.addActionListener(e -> sendCommand("/reset"));
-        quitButton.addActionListener(e -> {
-            sendCommand("/quit");
-            dispose();
-            try { if (socket != null) socket.close(); } catch (IOException ignored) {}
-            System.exit(0);
-        });
-
-        setSize(500, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setVisible(true);
-
-        connectToServer();
-    }
-
-    private void connectToServer() {
+        // ソケット接続
         try {
-            socket = new Socket("localhost", 8081);
+            socket = new Socket(host, port);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream(), Charset.forName("MS932")));
             out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), Charset.forName("MS932")), true);
-
-            new Thread(() -> {
-                try {
-                    String msg;
-                    while ((msg = in.readLine()) != null) {
-                        final String displayMsg = msg;
-                        SwingUtilities.invokeLater(() -> messageArea.append(displayMsg + "\n"));
-                    }
-                } catch (IOException e) {
-                    SwingUtilities.invokeLater(() -> messageArea.append("�ؒf: " + e.getMessage() + "\n"));
-                }
-            }).start();
-
-            messageArea.append("�T�[�o�[�ɐڑ����܂����B\n����Ƃ�Q�[���J�n�I\n");
         } catch (IOException e) {
-            messageArea.append("�ڑ����s: " + e.getMessage() + "\n");
+            JOptionPane.showMessageDialog(this, "サーバーに接続できませんでした。", "エラー", JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
         }
+
+        // 受信用スレッド
+        Thread receiverThread = new Thread(() -> {
+            try {
+                String message;
+                while ((message = in.readLine()) != null) {
+                    String finalMessage = message;
+                    SwingUtilities.invokeLater(() -> {
+                        messageArea.append(finalMessage + "\n");
+                        messageArea.setCaretPosition(messageArea.getDocument().getLength());
+                    });
+                }
+            } catch (IOException e) {
+                SwingUtilities.invokeLater(() -> {
+                    messageArea.append("受信エラー: " + e.getMessage() + "\n");
+                });
+            }
+        });
+        receiverThread.start();
+
+        // 送信ボタンの処理
+        sendButton.addActionListener(e -> sendWord());
+
+        // Enterキーで送信
+        inputField.addActionListener(e -> sendWord());
+
+        // リセットボタンの処理
+        resetButton.addActionListener(e -> {
+            out.println("/reset");
+        });
+
+        setVisible(true);
     }
 
-    private void sendMessage() {
-        String text = inputField.getText().trim();
-        if (!text.isEmpty()) {
-            out.println(text);
-            inputField.setText("");
+    private void sendWord() {
+        String input = inputField.getText().trim();
+        if (input.isEmpty()) {
+            return;
         }
-    }
 
-    private void sendCommand(String cmd) {
-        out.println(cmd);
+        if (input.equals("/quit") || input.equals("/reset")) {
+            out.println(input);
+        } else {
+            // 単語のみユーザーに入力させ、送信時に時刻を付加して送る
+            long timestamp = System.currentTimeMillis();
+            out.println(input + "##" + timestamp);
+        }
+        inputField.setText("");
     }
+public static void main(String[] args) {
+    final String host = args.length >= 1 ? args[0] : "localhost";
+    final int port = args.length >= 2 ? Integer.parseInt(args[1]) : 8081;
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(ShiritoriClientGUI::new);
-    }
+    SwingUtilities.invokeLater(() -> new ShiritoriClientGUI(host, port));
+}
+
 }
