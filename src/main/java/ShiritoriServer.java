@@ -4,6 +4,9 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.atilika.kuromoji.ipadic.Tokenizer; // 追加
+import com.atilika.kuromoji.ipadic.Token;
+
 public class ShiritoriServer {
     private static final int PORT = 8081;
     private static final List<ClientHandler> clients = new ArrayList<>();
@@ -13,6 +16,7 @@ public class ShiritoriServer {
     private static String lastWord = "り";
     private static boolean gameEnded = false;
     private static final AtomicInteger playerCount = new AtomicInteger(1);
+    private static final Tokenizer tokenizer = new Tokenizer();
 
     // 猶予時間中の入力を一時的に保管
     private static final List<PendingEntry> pendingEntries = new ArrayList<>();
@@ -112,6 +116,11 @@ public class ShiritoriServer {
 
                     synchronized (ShiritoriServer.class) {
                         String normalized = normalize(word);
+
+                        if (!isNoun(normalized)) { // 新しいヘルパーメソッドを呼び出す
+                            out.println("入力された単語は名詞ではありません。");
+                            continue;
+                        }
                         if (usedWords.contains(normalized) || !normalized.startsWith(lastWord)) {
                             out.println("無効な単語です。");
                             continue;
@@ -190,6 +199,19 @@ public class ShiritoriServer {
             pendingEntries.clear();
             waiting = false;
         }
+    }
+
+    private static boolean isNoun(String word) {
+        if (word == null || word.trim().isEmpty()) {
+            return false;
+        }
+        List<Token> tokens = tokenizer.tokenize(word);
+        if (tokens.isEmpty()) {
+            return false;
+        }
+        // 最後のトークンが名詞であるかをチェック
+        Token lastToken = tokens.get(tokens.size() - 1);
+        return lastToken.getPartOfSpeechLevel1().equals("名詞");
     }
 
     private static void broadcast(String message) {
