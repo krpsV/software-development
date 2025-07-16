@@ -1,5 +1,3 @@
-//package bootcamp;
-
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
@@ -7,7 +5,7 @@ import java.nio.charset.Charset;
 
 public class ShiritoriClient {
     public static void main(String[] args) throws IOException {
-        int port = 8080;
+        int port = 8081;
         if (args.length >= 1) {
             port = Integer.parseInt(args[0]);
         }
@@ -24,7 +22,7 @@ public class ShiritoriClient {
 
             Scanner scanner = new Scanner(System.in, Charset.forName("MS932"));
 
-            // サーバーからのメッセージを受信するスレッド
+            // サーバーからのメッセージを受信
             Thread receiverThread = new Thread(() -> {
                 try {
                     String message;
@@ -43,10 +41,13 @@ public class ShiritoriClient {
             // ユーザー入力を送信
             String input;
             while ((input = scanner.nextLine()) != null) {
-                out.println(input);
-                if (input.equals("/quit")) {
+                if (input.equals("/quit") || input.equals("/reset")) {
+                    out.println(input);
                     break;
                 }
+
+                long timestamp = System.currentTimeMillis();
+                out.println(input + "##" + timestamp);
             }
 
             receiverThread.interrupt();
