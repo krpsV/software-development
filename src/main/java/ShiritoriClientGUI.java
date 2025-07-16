@@ -1,3 +1,5 @@
+
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -18,14 +20,14 @@ public class ShiritoriClientGUI extends JFrame {
     private PrintWriter out;
 
     public ShiritoriClientGUI() {
-        super("ã—ã‚Šã¨ã‚Šã‚²ãƒ¼ãƒ ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆ");
+        super("‚µ‚è‚Æ‚èƒQ[ƒ€ƒNƒ‰ƒCƒAƒ“ƒg");
 
         messageArea = new JTextArea();
         messageArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(messageArea);
 
         inputField = new JTextField();
-        sendButton = new JButton("é€ä¿¡");
+        sendButton = new JButton("‘—M");
         resetButton = new JButton("/reset");
         quitButton = new JButton("/quit");
 
@@ -72,13 +74,13 @@ public class ShiritoriClientGUI extends JFrame {
                         SwingUtilities.invokeLater(() -> messageArea.append(displayMsg + "\n"));
                     }
                 } catch (IOException e) {
-                    SwingUtilities.invokeLater(() -> messageArea.append("åˆ‡æ–­: " + e.getMessage() + "\n"));
+                    SwingUtilities.invokeLater(() -> messageArea.append("Ø’f: " + e.getMessage() + "\n"));
                 }
             }).start();
 
-            messageArea.append("ã‚µãƒ¼ãƒãƒ¼ã«æ¥ç¶šã—ã¾ã—ãŸã€‚\nã—ã‚Šã¨ã‚Šã‚²ãƒ¼ãƒ é–‹å§‹ï¼\n");
+            messageArea.append("ƒT[ƒo[‚ÉÚ‘±‚µ‚Ü‚µ‚½B\n‚µ‚è‚Æ‚èƒQ[ƒ€ŠJnI\n");
         } catch (IOException e) {
-            messageArea.append("æ¥ç¶šå¤±æ•—: " + e.getMessage() + "\n");
+            messageArea.append("Ú‘±¸”s: " + e.getMessage() + "\n");
         }
     }
 

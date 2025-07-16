@@ -1,9 +1,12 @@
-// package bootcamp;
+
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.atilika.kuromoji.ipadic.Tokenizer;
+import com.atilika.kuromoji.ipadic.Token;  
 
 public class ShiritoriServer {
     private static final int PORT = 8081;
@@ -14,6 +17,7 @@ public class ShiritoriServer {
     private static String lastWord = "り";
     private static boolean gameEnded = false;
     private static final AtomicInteger playerCount = new AtomicInteger(1);
+    private static final Tokenizer tokenizer = new Tokenizer();
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(PORT);
@@ -71,6 +75,11 @@ public class ShiritoriServer {
                         }
 
                         String normalized = normalize(input);
+                        
+                        if (!isNoun(normalized)) {
+                            out.println("入力された単語は名詞ではありません。");
+                            continue; // この単語は無効なので次の入力を待つ
+                        }
                         if (usedWords.contains(normalized)) {
                             out.println("既に使用済みの単語です。");
                             continue;
@@ -109,6 +118,20 @@ public class ShiritoriServer {
                 broadcast(playerName + "が退出しました。");
             }
         }
+    }
+
+    private static boolean isNoun(String word) {
+        if (word == null || word.trim().isEmpty()) {
+            return false;
+        }
+        List<Token> tokens = tokenizer.tokenize(word);
+        if (tokens.isEmpty()) {
+            return false;
+        }
+        // 最後のトークンが名詞であるかをチェック
+        // Kuromojiの品詞は「名詞」で始まります（例: 名詞,一般; 名詞,固有名詞など）
+        Token lastToken = tokens.get(tokens.size() - 1);
+        return lastToken.getPartOfSpeechLevel1().equals("名詞");
     }
 
     private static void broadcast(String message) {
