@@ -37,6 +37,7 @@ public class ShiritoriClientGUI extends JFrame {
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(sendButton);
+        buttonPanel.add(quitButton);
         buttonPanel.add(resetButton);
 
         inputPanel.add(buttonPanel, BorderLayout.EAST);
