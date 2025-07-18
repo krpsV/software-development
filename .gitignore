@@ -1,13 +1,5 @@
 # Javaコンパイル出力
-*.class
-*.jar
-*.war
-*.ear
-*.nar
-bin/
-target/
-build/
-out/
+!target/
 
 # パッケージファイル
 *.deb
