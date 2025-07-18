@@ -108,7 +108,7 @@ public class ShiritoriClientGUI extends JFrame {
         inputField.setText("");
     }
 public static void main(String[] args) {
-    final String host = args.length >= 1 ? args[0] : "localhost";
+    final String host = args.length >= 1 ? args[0] : "10.230.67.147";
     final int port = args.length >= 2 ? Integer.parseInt(args[1]) : 8081;
 
     SwingUtilities.invokeLater(() -> new ShiritoriClientGUI(host, port));
