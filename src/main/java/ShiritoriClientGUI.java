@@ -4,6 +4,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.Charset;
+import java.util.*;
 
 public class ShiritoriClientGUI extends JFrame {
     private JTextArea messageArea;
@@ -108,7 +109,11 @@ public class ShiritoriClientGUI extends JFrame {
         inputField.setText("");
     }
 public static void main(String[] args) {
-    final String host = args.length >= 1 ? args[0] : "10.230.67.147";
+    Scanner scanner = new Scanner(System.in, Charset.forName("MS932"));
+
+    System.out.print("ホストのIPアドレスを入力してください：");
+    String hostIp = scanner.nextLine();
+    final String host = args.length >= 1 ? args[0] : hostIp;
     final int port = args.length >= 2 ? Integer.parseInt(args[1]) : 8081;
 
     SwingUtilities.invokeLater(() -> new ShiritoriClientGUI(host, port));
